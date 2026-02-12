@@ -101,3 +101,24 @@ This service is designed to be fully stateless and horizontally scalable.
 - Role-based access control (RBAC)
 - Redis-backed token blacklist
 - Rate limiting middleware
+
+
+
+fraud-auth-service/
+│
+├── cmd/
+│   └── main.go
+│
+├── internal/
+│   ├── config/
+│   ├── db/
+│   ├── models/
+│   ├── repository/
+│   ├── service/
+│   ├── handler/
+│   └── middleware/
+│
+├── pkg/
+│   └── utils/
+│
+└── README.md
