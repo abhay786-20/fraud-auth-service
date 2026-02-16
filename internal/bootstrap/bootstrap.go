@@ -3,9 +3,10 @@ package bootstrap
 import (
 	"github.com/abhay786-20/fraud-auth-service/internal/config"
 	"github.com/abhay786-20/fraud-auth-service/internal/db"
+	"github.com/abhay786-20/fraud-auth-service/internal/handler"
+	"github.com/abhay786-20/fraud-auth-service/internal/repository"
 	"github.com/abhay786-20/fraud-auth-service/internal/router"
 	"github.com/abhay786-20/fraud-auth-service/internal/service"
-	"github.com/abhay786-20/fraud-auth-service/internal/repository"
 	"github.com/abhay786-20/fraud-auth-service/pkg/env"
 	"github.com/abhay786-20/fraud-auth-service/pkg/logger"
 )
@@ -44,10 +45,14 @@ func NewApplication() (*Application, error) {
 	userRepo := repository.NewPostgresUserRepository(pg.DB, log)
 
 	// Service - Auth
-	authService := service.NewAuthService(userRepo, cfg.Auth.JWTSecret)		
+	authService := service.NewAuthService(userRepo, cfg.Auth.JWTSecret, cfg.Auth.TokenTTL)
+
+	// Handlers
+	authHandler := handler.NewAuthHandler(authService, log)
+	healthHandler := handler.NewHealthHandler(pg)
 
 	// 5️⃣ Router
-	r := router.NewRouter(log, cfg, pg, authService)
+	r := router.NewRouter(log, cfg, authHandler, healthHandler)
 
 	return &Application{
 		Config: cfg,
@@ -55,4 +60,16 @@ func NewApplication() (*Application, error) {
 		DB:     pg,
 		Router: r,
 	}, nil
+}
+
+func (a *Application) Shutdown() {
+	a.Logger.Info("Shutting down application...")
+
+	if err := a.DB.Close(); err != nil {
+		a.Logger.Error("Error closing database: " + err.Error())
+	} else {
+		a.Logger.Info("Database connection closed")
+	}
+
+	a.Logger.Info("Application shutdown complete")
 }
