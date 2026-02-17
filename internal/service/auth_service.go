@@ -2,26 +2,31 @@ package service
 
 import (
 	"errors"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/abhay786-20/fraud-auth-service/internal/models"
 	"github.com/abhay786-20/fraud-auth-service/internal/repository"
+	"github.com/abhay786-20/fraud-auth-service/pkg/utils"
 )
 
 
 type AuthService struct {
-	userRepo repository.UserRepository
+	userRepo  repository.UserRepository
 	jwtSecret string
+	tokenTTL  time.Duration
 }
 
 func NewAuthService(
 	userRepo repository.UserRepository,
 	jwtSecret string,
+	tokenTTL time.Duration,
 ) *AuthService {
 	return &AuthService{
-		userRepo: userRepo,
+		userRepo:  userRepo,
 		jwtSecret: jwtSecret,
+		tokenTTL:  tokenTTL,
 	}
 }
 
@@ -68,5 +73,14 @@ func (s *AuthService) Login(email, password string) (*models.User, error) {
 	}
 
 	return user, nil
+}
+
+func (s *AuthService) GenerateToken(user *models.User) (string, error) {
+	return utils.GenerateToken(
+		user.ID,
+		user.Email,
+		s.jwtSecret,
+		s.tokenTTL,
+	)
 }
 

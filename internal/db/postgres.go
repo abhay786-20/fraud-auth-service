@@ -35,3 +35,11 @@ func NewPostgres(cfg config.DatabaseConfig) (*Postgres, error) {
 
 	return &Postgres{DB: db}, nil
 }
+
+func (p *Postgres) Ping() error {
+	return p.DB.Ping()
+}
+
+func (p *Postgres) Close() error {
+	return p.DB.Close()
+}
